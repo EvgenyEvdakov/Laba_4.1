@@ -14,73 +14,89 @@
 # Поле first — целое положительное число, калорийность 100 г продукта; поле second —  дробное положительное число,
 # масса продукта в килограммах. Реализовать метод power() — вычисление общей калорийности продукта.
 
-class Pair:
-    def __init__(self, first=None, second=None):
-        # Если аргументы не переданы, то инициализируем их как None (без проверки)
-        if first is not None and (not isinstance(first, int) or first <= 0):
+class IPair:
+    """Интерфейс для работы с парами значений."""
+    def get_calories(self):
+        raise NotImplementedError
+
+class Pair(IPair):
+    """Класс для хранения и расчета данных о продукте."""
+    def __init__(self, first: int, second: float):
+        if not isinstance(first, int) or first <= 0:
             raise ValueError("Поле 'first' должно быть целым положительным числом (калорийность 100 г продукта).")
-        if second is not None and (not isinstance(second, (int, float)) or second <= 0):
+        if not isinstance(second, (int, float)) or second <= 0:
             raise ValueError("Поле 'second' должно быть положительным числом (масса продукта в килограммах).")
 
         self.first = first
         self.second = second
 
-    def read(self):
-        # Ввод значений с клавиатуры с проверкой
+    def get_calories(self):
+        """Вычисление общей калорийности продукта."""
+        return self.first * self.second * 10
+
+class IReader:
+    """Интерфейс для ввода данных."""
+    def read(self) -> Pair:
+        raise NotImplementedError
+
+class ConsoleReader(IReader):
+    """Реализация ввода данных с консоли."""
+    def read(self) -> Pair:
         try:
-            self.first = int(input("Введите калорийность 100 г продукта (целое положительное число): "))
-            if self.first <= 0:
+            first = int(input("Введите калорийность 100 г продукта (целое положительное число): "))
+            if first <= 0:
                 raise ValueError
         except ValueError:
             print("Ошибка: значение калорийности должно быть целым положительным числом.")
-            return
+            return None
 
         try:
-            self.second = float(input("Введите массу продукта в килограммах (положительное число): "))
-            if self.second <= 0:
+            second = float(input("Введите массу продукта в килограммах (положительное число): "))
+            if second <= 0:
                 raise ValueError
         except ValueError:
             print("Ошибка: значение массы должно быть положительным числом.")
+            return None
 
-    def display(self):
-        # Вывод значений на экран
-        if self.first is None or self.second is None:
+        return Pair(first, second)
+
+class IDisplay:
+    """Интерфейс для вывода данных."""
+    def display(self, pair: Pair):
+        raise NotImplementedError
+
+class ConsoleDisplay(IDisplay):
+    """Реализация вывода данных на консоль."""
+    def display(self, pair: Pair):
+        if pair is None:
             print("Данные не заполнены.")
         else:
-            print(f"Калорийность 100 г продукта: {self.first} ккал")
-            print(f"Масса продукта: {self.second} кг")
+            print(f"Калорийность 100 г продукта: {pair.first} ккал")
+            print(f"Масса продукта: {pair.second} кг")
+            print(f"Общая калорийность продукта: {pair.get_calories()} ккал")
 
-    def power(self):
-        # Проверка перед расчетом
-        if self.first is None or self.second is None:
-            print("Невозможно вычислить общую калорийность. Данные не заполнены.")
+class PairFactory:
+    """Фабрика для создания объектов Pair."""
+    @staticmethod
+    def create(first: int, second: float) -> Pair:
+        try:
+            return Pair(first, second)
+        except ValueError as e:
+            print(f"Ошибка при создании объекта: {e}")
             return None
-        # Вычисление общей калорийности продукта
-        return self.first * self.second * 10  # 100 г = 0.1 кг, поэтому умножаем на 10
-
-
-# Внешняя функция создания объекта Pair
-def make_pair(first, second):
-    try:
-        return Pair(first, second)
-    except ValueError as e:
-        print(f"Ошибка при создании объекта: {e}")
-        return None
-
 
 if __name__ == '__main__':
     # Демонстрация возможностей класса
 
-    # Пример использования make_pair
-    print("Создание объекта через make_pair:")
-    pair = make_pair(250, 1.5)  # Калорийность 100 г = 250 ккал, масса = 1.5 кг
+    # Пример использования PairFactory
+    print("Создание объекта через PairFactory:")
+    pair = PairFactory.create(250, 1.5)  # Калорийность 100 г = 250 ккал, масса = 1.5 кг
+    display = ConsoleDisplay()
     if pair:
-        pair.display()
-        print(f"Общая калорийность продукта: {pair.power()} ккал")
+        display.display(pair)
 
     print("\nВвод данных вручную:")
-    pair2 = Pair()  # Создаем объект без значений
-    pair2.read()  # Ввод с клавиатуры
-    pair2.display()  # Вывод на экран
-    if pair2.power() is not None:
-        print(f"Общая калорийность продукта: {pair2.power()} ккал")
+    reader = ConsoleReader()  # Чтение данных с консоли
+    pair2 = reader.read()  # Ввод с клавиатуры
+    if pair2:
+        display.display(pair2)

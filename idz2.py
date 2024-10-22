@@ -20,17 +20,10 @@ class Point:
         self.x = x
         self.y = y
 
-    def read(self):
-        """Ввод координат точки с клавиатуры"""
-        try:
-            self.x = float(input("Введите координату X: "))
-            self.y = float(input("Введите координату Y: "))
-        except ValueError:
-            print("Ошибка: координаты должны быть числами.")
-
-    def display(self):
-        """Вывод координат точки на экран"""
-        print(f"Точка имеет координаты: ({self.x}, {self.y})")
+    def set_coordinates(self, x, y):
+        """Установка координат точки"""
+        self.x = x
+        self.y = y
 
     def move_x(self, dx):
         """Перемещение точки по оси X на dx"""
@@ -46,6 +39,8 @@ class Point:
 
     def distance_to_point(self, other_point):
         """Определение расстояния между двумя точками"""
+        if not isinstance(other_point, Point):
+            raise ValueError("Переданный объект должен быть типа Point")
         return math.sqrt((self.x - other_point.x) ** 2 + (self.y - other_point.y) ** 2)
 
     def to_polar(self):
@@ -56,11 +51,26 @@ class Point:
 
     def __eq__(self, other):
         """Сравнение точек на совпадение"""
+        if not isinstance(other, Point):
+            return False
         return self.x == other.x and self.y == other.y
 
     def __ne__(self, other):
         """Сравнение точек на несовпадение"""
         return not self.__eq__(other)
+
+    def read(self):
+        """Ввод координат точки с клавиатуры"""
+        try:
+            self.x = float(input("Введите координату X: "))
+            self.y = float(input("Введите координату Y: "))
+        except ValueError:
+            print("Ошибка: координаты должны быть числами.")
+
+    def display(self):
+        """Вывод координат точки на экран"""
+        print(f"Точка имеет координаты: ({self.x}, {self.y})")
+
 
 if __name__ == '__main__':
     # Демонстрация возможностей класса Point
