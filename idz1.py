@@ -86,7 +86,6 @@ class PairFactory:
             return None
 
 if __name__ == '__main__':
-    # Демонстрация возможностей класса
 
     # Пример использования PairFactory
     print("Создание объекта через PairFactory:")
