@@ -13,15 +13,26 @@
 # расстояния между двумя точками, преобразование в полярные координаты, сравнение на совпадение и несовпадение.
 
 import math
+from abc import ABC, abstractmethod
 
-class Point:
+# Интерфейс для работы с точками
+class IPoint(ABC):
+    @abstractmethod
+    def distance_to_origin(self):
+        pass
+
+    @abstractmethod
+    def distance_to_point(self, other_point):
+        pass
+
+    @abstractmethod
+    def to_polar(self):
+        pass
+
+# Класс Point реализует интерфейс IPoint
+class Point(IPoint):
     def __init__(self, x=0.0, y=0.0):
         """Инициализация координат точки (по умолчанию точка в начале координат)"""
-        self.x = x
-        self.y = y
-
-    def set_coordinates(self, x, y):
-        """Установка координат точки"""
         self.x = x
         self.y = y
 
@@ -59,51 +70,78 @@ class Point:
         """Сравнение точек на несовпадение"""
         return not self.__eq__(other)
 
-    def read(self):
-        """Ввод координат точки с клавиатуры"""
+# Интерфейс для ввода данных
+class IReader(ABC):
+    @abstractmethod
+    def read(self) -> IPoint:
+        pass
+
+# Реализация ввода с консоли
+class ConsoleReader(IReader):
+    def read(self) -> Point:
         try:
-            self.x = float(input("Введите координату X: "))
-            self.y = float(input("Введите координату Y: "))
+            x = float(input("Введите координату X: "))
+            y = float(input("Введите координату Y: "))
+            return Point(x, y)
         except ValueError:
             print("Ошибка: координаты должны быть числами.")
+            return None
 
-    def display(self):
-        """Вывод координат точки на экран"""
-        print(f"Точка имеет координаты: ({self.x}, {self.y})")
+# Интерфейс для вывода данных
+class IDisplay(ABC):
+    @abstractmethod
+    def display(self, point: IPoint):
+        pass
 
+# Реализация вывода на консоль
+class ConsoleDisplay(IDisplay):
+    def display(self, point: Point):
+        if point is None:
+            print("Данные не заполнены.")
+        else:
+            print(f"Точка имеет координаты: ({point.x}, {point.y})")
+
+# Фабрика для создания объекта Point
+class PointFactory:
+    @staticmethod
+    def create(x: float, y: float) -> Point:
+        return Point(x, y)
 
 if __name__ == '__main__':
-    # Демонстрация возможностей класса Point
+    # Демонстрация возможностей класса Point через фабрику
+    print("Создание точки через фабрику:")
+    point1 = PointFactory.create(3.0, 4.0)
+    display = ConsoleDisplay()
+    display.display(point1)
 
-    # Создание точки с помощью ввода с клавиатуры
-    point1 = Point()
-    point1.read()
-    point1.display()
-
-    # Создание второй точки через параметры
-    point2 = Point(3.0, 4.0)
-    print("Вторая точка:")
-    point2.display()
+    # Ввод данных с консоли
+    print("\nВвод данных с клавиатуры:")
+    reader = ConsoleReader()
+    point2 = reader.read()
+    if point2:
+        display.display(point2)
 
     # Перемещение точки по осям
     print("\nПеремещение первой точки:")
     point1.move_x(2.0)
     point1.move_y(-1.0)
-    point1.display()
+    display.display(point1)
 
     # Вычисление расстояния до начала координат
     print(f"\nРасстояние от первой точки до начала координат: {point1.distance_to_origin():.2f}")
 
     # Вычисление расстояния между двумя точками
-    print(f"Расстояние между первой и второй точками: {point1.distance_to_point(point2):.2f}")
+    if point2:
+        print(f"Расстояние между первой и второй точками: {point1.distance_to_point(point2):.2f}")
 
     # Преобразование в полярные координаты
     r, theta = point1.to_polar()
     print(f"\nПолярные координаты первой точки: радиус = {r:.2f}, угол = {math.degrees(theta):.2f} градусов")
 
     # Сравнение точек
-    print("\nСравнение точек:")
-    if point1 == point2:
-        print("Точки совпадают.")
-    else:
-        print("Точки не совпадают.")
+    if point2:
+        print("\nСравнение точек:")
+        if point1 == point2:
+            print("Точки совпадают.")
+        else:
+            print("Точки не совпадают.")
